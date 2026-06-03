@@ -29,10 +29,10 @@ export class RayfinAuthService {
 
     private getOptions(): FabricAuthOptions {
         const workspaceId = import.meta.env.VITE_FABRIC_WORKSPACE_ID;
-        const projectId = import.meta.env.VITE_FABRIC_PROJECT_ID;
+        const projectId = import.meta.env.VITE_FABRIC_ITEM_ID;
         if (!workspaceId || !projectId) {
             throw new Error(
-                "Missing VITE_FABRIC_WORKSPACE_ID or VITE_FABRIC_PROJECT_ID — run 'npx rayfin up'",
+                "Missing VITE_FABRIC_WORKSPACE_ID or VITE_FABRIC_ITEM_ID — run 'npx rayfin up'",
             );
         }
         return {
