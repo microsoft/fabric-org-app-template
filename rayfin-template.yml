@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: template
+metadata:
+    name: org-app
+    displayName: Power BI Org App
+    description: Migrate a Power BI Org App (preview) into a customizable Fabric app
+    version: 0.0.1
+entries:
+    - name: Org App
+      path: .
