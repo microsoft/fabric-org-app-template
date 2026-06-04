@@ -1,0 +1,54 @@
+//-----------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//        Copyright (c) Microsoft Corporation.  All rights reserved.
+//        Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+//-----------------------------------------------------------------------
+
+import type { OrgAppManifest } from "@/types/orgAppManifest";
+
+/**
+ * Origin used for both report embeds and "Open in Power BI" deep links.
+ *
+ * Comes from rayfin's `VITE_FABRIC_PORTAL_URL` (populated by `rayfin up`).
+ * The Fabric portal serves both the Org App experience and the report
+ * embed endpoint on the same host (e.g. `https://daily.fabric.microsoft.com`),
+ * so a single origin is enough — no separate "powerbi.com" mapping needed.
+ */
+export function getFabricOrigin(): string {
+    const raw = import.meta.env.VITE_FABRIC_PORTAL_URL ?? "https://app.fabric.microsoft.com";
+    return raw.replace(/\/+$/, "");
+}
+
+/** Build the secure-embed URL for a single report. */
+export function getReportEmbedUrl(args: {
+    reportItemId: string;
+    workspaceId: string;
+    tenantId?: string;
+}): string {
+    const url = new URL(`${getFabricOrigin()}/reportEmbed`);
+    url.searchParams.set("reportId", args.reportItemId);
+    url.searchParams.set("groupId", args.workspaceId);
+    url.searchParams.set("autoAuth", "true");
+    url.searchParams.set("actionBarEnabled", "true");
+    url.searchParams.set("reportCopilotInEmbed", "true");
+    if (args.tenantId) url.searchParams.set("ctid", args.tenantId);
+    return url.toString();
+}
+
+/** Deep link to open the whole Org App in the Power BI / Fabric portal. */
+export function getOpenAppUrl(manifest: OrgAppManifest): string {
+    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/apps/${manifest.orgAppId}`);
+    if (manifest.tenantId) url.searchParams.set("ctid", manifest.tenantId);
+    return url.toString();
+}
+
+/** Deep link to open a single report in the Power BI / Fabric portal. */
+export function getOpenReportUrl(
+    manifest: OrgAppManifest,
+    reportItemId: string,
+): string {
+    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/apps/${manifest.orgAppId}/reports/${reportItemId}`);
+    if (manifest.tenantId) url.searchParams.set("ctid", manifest.tenantId);
+    return url.toString();
+}
