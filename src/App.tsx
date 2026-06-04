@@ -5,14 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import {
-    BrowserRouter,
-    Navigate,
-    Route,
-    Routes,
-} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { Sidebar } from "@/components/Sidebar";
+import { AppShell } from "@/components/AppShell";
+import { HomePage } from "@/components/HomePage";
+import { OrgAppThemeProvider } from "@/components/OrgAppThemeProvider";
 import { ReportEmbed } from "@/components/ReportEmbed";
 import { UnconfiguredAppPreview } from "@/components/UnconfiguredAppPreview";
 import { isUnconfigured, orgAppManifest } from "@/config/orgAppManifest";
@@ -22,36 +19,23 @@ export default function App() {
         return <UnconfiguredAppPreview />;
     }
 
-    const firstReport = orgAppManifest.reports[0];
-
     return (
-        <BrowserRouter>
-            <div className="flex h-screen w-screen bg-background text-foreground">
-                <Sidebar manifest={orgAppManifest} />
-                <main className="flex-1 overflow-hidden">
-                    <Routes>
+        <OrgAppThemeProvider manifest={orgAppManifest}>
+            <BrowserRouter>
+                <Routes>
+                    <Route element={<AppShell manifest={orgAppManifest} />}>
                         <Route
-                            path="/reports/:elementId"
+                            index
+                            element={<HomePage manifest={orgAppManifest} />}
+                        />
+                        <Route
+                            path="reports/:elementId"
                             element={<ReportEmbed manifest={orgAppManifest} />}
                         />
-                        <Route
-                            path="*"
-                            element={
-                                firstReport ? (
-                                    <Navigate
-                                        to={`/reports/${firstReport.elementId}`}
-                                        replace
-                                    />
-                                ) : (
-                                    <div className="flex h-full items-center justify-center text-300 text-muted-foreground">
-                                        This Org App has no reports.
-                                    </div>
-                                )
-                            }
-                        />
-                    </Routes>
-                </main>
-            </div>
-        </BrowserRouter>
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </OrgAppThemeProvider>
     );
 }
