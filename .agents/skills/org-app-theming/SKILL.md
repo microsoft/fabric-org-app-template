@@ -9,6 +9,19 @@ description: Patch src/global.css so the --color-app-* Tailwind tokens use the O
 
 Right after **org-app-parsing** has populated the `theme` object in `src/config/orgAppManifest.ts`. The components reference theme colors via CSS variables (`var(--color-app-background)` etc.), and those variables live in `src/global.css`.
 
+This skill writes the **default** theme — the one shown until the end user picks something else from `Settings → Theme`.
+
+## Scope: this skill vs the runtime theme picker
+
+| | This skill (`org-app-theming`) | Runtime picker (Settings → Theme) |
+|---|---|---|
+| Who runs it | Migration agent, once per template instance | End user, any time |
+| What it changes | `@theme` defaults in `src/global.css` | `:root` inline styles + `localStorage["org-app-active-theme"]` |
+| When it applies | Always — the baseline | Only when the user picks a non-default theme |
+| What it can pick from | The Org App's own brand colors | The Org App's brand colors **or** any built-in Power BI theme in [`src/config/themePresets.ts`](../../../src/config/themePresets.ts) |
+
+Do **not** modify `themePresets.ts` or `lib/theme.ts` from this skill — those are end-user surfaces. Your job is only to write the Org App's brand colors into the `@theme` block so they become the default.
+
 ## Target tokens
 
 Edit the `@theme` block in `src/global.css`. The five tokens to update:

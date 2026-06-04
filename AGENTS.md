@@ -75,7 +75,13 @@ Once validation passes:
 > 1. Run `pnpm dev`
 > 2. Open http://localhost:5173
 > 3. Sign in with your work account
-> 4. Your reports should appear in the sidebar.
+> 4. You'll land on the home page with a tile for every report.
+>
+> A few things to try:
+> - Click the **gear icon** (top-right) → **Theme** to switch between the Org App brand colors and any built-in Power BI theme (Default, Executive, Frontier, Innovate, Bloom, Tidal, Sunset, Storm). Your choice is remembered per browser.
+> - Same menu → **Configuration** shows the source Org App metadata and the raw manifest. To pull in changes from the source app later, just run `copilot` again and ask for a re-migrate.
+> - Collapse the sidebar with the toggle in the top-left to give reports the full width.
+> - Hover any sidebar report (or any home-page tile) and use the ↗ button to jump to the same report in the Power BI portal.
 
 ---
 

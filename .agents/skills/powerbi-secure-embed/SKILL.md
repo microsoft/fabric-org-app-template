@@ -10,14 +10,27 @@ description: Reference for the Power BI secure embed URL format used by this tem
 This template uses **"Embed for your organization" with `autoAuth=true`** — the simplest of the three Power BI embed flows.
 
 ```
-https://app.powerbi.com/reportEmbed
+{FABRIC_PORTAL_ORIGIN}/reportEmbed
     ?reportId={itemId}
     &groupId={workspaceId}
     &autoAuth=true
     &ctid={tenantId}
+    &actionBarEnabled=true
+    &reportCopilotInEmbed=true
 ```
 
-The user's existing Power BI session (cookie on `app.powerbi.com`) signs them into the iframe automatically. **No embed token, no service principal, no Power BI Embedded capacity required.**
+The embed origin is read from `VITE_FABRIC_PORTAL_URL` (set by `rayfin up` / `rayfin env` from `RAYFIN_PUBLIC_PORTAL_URL`). **The same Fabric portal host serves the report embed endpoint** — no `fabric.microsoft.com → powerbi.com` host swap is needed.
+
+| Fabric portal | Embed origin used |
+|---|---|
+| `https://app.fabric.microsoft.com/` | `https://app.fabric.microsoft.com` |
+| `https://daily.fabric.microsoft.com/` | `https://daily.fabric.microsoft.com` |
+| `https://msit.fabric.microsoft.com/` | `https://msit.fabric.microsoft.com` |
+| `https://dxt.fabric.microsoft.com/` | `https://dxt.fabric.microsoft.com` |
+
+The user's existing Power BI / Fabric session signs them into the iframe automatically. **No embed token, no service principal, no Power BI Embedded capacity required.**
+
+All URL building lives in [`src/lib/fabricUrls.ts`](../../../src/lib/fabricUrls.ts) (`getReportEmbedUrl`, `getOpenAppUrl`, `getOpenReportUrl`) — change embed parameters there, not at call sites.
 
 Reference: [Embed Power BI content with service principal and secrets / "Embed for your organization"](https://learn.microsoft.com/power-bi/collaborate-share/service-embed-secure)
 
@@ -29,6 +42,8 @@ Reference: [Embed Power BI content with service principal and secrets / "Embed f
 | `groupId` | `manifest.workspaceId` | The workspace that owns the report |
 | `autoAuth=true` | hard-coded | Skips the interactive sign-in inside the iframe |
 | `ctid` | `manifest.tenantId` | Required for multi-tenant guest users; harmless to include always |
+| `actionBarEnabled=true` | hard-coded | Shows the Power BI action bar (Comment, Subscribe, Share) — parity with in-portal |
+| `reportCopilotInEmbed=true` | hard-coded | Enables Copilot pane inside the embed (where tenant policy allows) |
 
 ## What is *not* this template
 
@@ -44,11 +59,12 @@ If the user later needs filters, bookmarks, or eventing — switch to `powerbi-c
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Iframe shows "You don't have access" | User is not a viewer of the workspace **or** the underlying report | Verify in `app.powerbi.com` directly |
-| Iframe shows AAD login form | `autoAuth` did not pick up the session | User must visit `app.powerbi.com` once in this browser session to seed the cookie |
+| Iframe shows "You don't have access" | User is not a viewer of the workspace **or** the underlying report | Verify in the Fabric portal directly (`VITE_FABRIC_PORTAL_URL`) |
+| Iframe shows AAD login form | `autoAuth` did not pick up the session | User must visit the Fabric portal once in this browser session (e.g. `https://daily.fabric.microsoft.com/`) to seed the cookie |
 | Iframe loads then shows "Tenant mismatch" | `ctid` doesn't match the session tenant | Confirm `tenantId` in the manifest matches `az account show --query tenantId` |
 | Iframe loads blank, no error | `reportId` belongs to a different `groupId` | Re-run the migration agent to refresh the manifest |
 | Mixed content / X-Frame-Options error in console | Self-hosted under a non-HTTPS origin | Use `https://` (or `http://localhost` which Power BI allows) |
+| Iframe loads to a 404 or "site doesn't exist" | `VITE_FABRIC_PORTAL_URL` points at the wrong environment | Re-run `rayfin up` against the right env, or set `RAYFIN_PUBLIC_PORTAL_URL` before `pnpm dev` |
 
 ## Allowed embed origins
 

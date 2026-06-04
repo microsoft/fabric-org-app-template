@@ -84,3 +84,26 @@ Use `lucide-react`. Size with `icon-size-200` (16px) for inline and `icon-size-4
 ## When to deviate
 
 Don't. If a design requires a token that doesn't exist, **add the token** to `src/global.css` first, then use it. This keeps the codebase consistent for the next migration.
+
+## Layout primitives
+
+The shell is composed of small, single-purpose primitives. Don't introduce new top-level layouts — extend or replace these in place.
+
+| Component | File | Role |
+|---|---|---|
+| `AppShell` | [`src/components/AppShell.tsx`](../../../src/components/AppShell.tsx) | Topbar + Sidebar + `<Outlet />` container. Owns the `useSidebarCollapsed` state. |
+| `Topbar` | [`src/components/Topbar.tsx`](../../../src/components/Topbar.tsx) | Sidebar toggle, app brand (links to `/`), "Open in Power BI" button, `SettingsMenu`. Fixed 48px height. |
+| `Sidebar` | [`src/components/Sidebar.tsx`](../../../src/components/Sidebar.tsx) | Home entry + report list. Accepts `collapsed: boolean`. Per-item open-in-PBI affordance reveals on hover. |
+| `HomePage` | [`src/components/HomePage.tsx`](../../../src/components/HomePage.tsx) | Hero band + responsive grid of `ReportCard` tiles. Route: `/`. |
+| `ReportCard` | [`src/components/ReportCard.tsx`](../../../src/components/ReportCard.tsx) | Tile with primary action = in-app embed, secondary = open in Power BI. |
+| `SettingsMenu` | [`src/components/SettingsMenu.tsx`](../../../src/components/SettingsMenu.tsx) | Gear dropdown. Two items: Theme submenu, Configuration dialog. |
+| `ThemeSubmenu` | [`src/components/ThemeSubmenu.tsx`](../../../src/components/ThemeSubmenu.tsx) | Org App theme + built-in Power BI themes. See `org-app-theming`. |
+| `ConfigurationDialog` | [`src/components/ConfigurationDialog.tsx`](../../../src/components/ConfigurationDialog.tsx) | Read-only modal showing source Org App metadata + manifest JSON. |
+
+### Layout rules
+
+- **Do not nest routers.** `BrowserRouter` lives in `App.tsx`; `AppShell` is the layout route and renders `<Outlet />`.
+- **Do not bypass `lib/fabricUrls.ts`.** All embed + open-in-PBI URLs go through `getReportEmbedUrl` / `getOpenAppUrl` / `getOpenReportUrl`.
+- **The Sidebar's collapsed state is persisted** in `localStorage["org-app-sidebar-collapsed"]` — don't re-derive it elsewhere.
+- **The active theme is persisted** in `localStorage["org-app-active-theme"]` — sentinel `__org_app__` means "use the manifest theme".
+- **No mobile breakpoints** for the shell chrome. The HomePage grid is the only responsive surface (`sm:grid-cols-2 lg:grid-cols-3`).
