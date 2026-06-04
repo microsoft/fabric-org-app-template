@@ -73,19 +73,30 @@ export function getReportEmbedUrl(args: {
     return url.toString();
 }
 
-/** Deep link to open the whole Org App in the Power BI / Fabric portal. */
+/**
+ * Deep link to open the whole Org App in the Power BI / Fabric portal.
+ *
+ * The Fabric portal uses `/groups/{ws}/orgapps/{appId}` for Org Apps
+ * (preview). The legacy `/groups/{ws}/apps/{appId}` path is for classic
+ * Power BI apps and 404s for Org Apps.
+ */
 export function getOpenAppUrl(manifest: OrgAppManifest): string {
-    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/apps/${manifest.orgAppId}`);
+    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/orgapps/${manifest.orgAppId}`);
     if (manifest.tenantId) url.searchParams.set("ctid", manifest.tenantId);
     return url.toString();
 }
 
-/** Deep link to open a single report in the Power BI / Fabric portal. */
+/**
+ * Deep link to open a single report in the Power BI / Fabric portal.
+ *
+ * Note: the path segment is **singular** `report` (matches the portal
+ * URL `/groups/{ws}/orgapps/{appId}/report/{reportId}`), not `reports`.
+ */
 export function getOpenReportUrl(
     manifest: OrgAppManifest,
     reportItemId: string,
 ): string {
-    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/apps/${manifest.orgAppId}/reports/${reportItemId}`);
+    const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/orgapps/${manifest.orgAppId}/report/${reportItemId}`);
     if (manifest.tenantId) url.searchParams.set("ctid", manifest.tenantId);
     return url.toString();
 }

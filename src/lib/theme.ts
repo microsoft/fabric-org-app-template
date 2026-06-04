@@ -43,15 +43,26 @@ export function applyOrgAppTheme(theme: OrgAppTheme): void {
     });
 }
 
-/** Map a Power BI built-in report theme onto the shell vars. */
+/**
+ * Map a Power BI built-in report theme onto the shell vars.
+ *
+ * `theme.background` in the Power BI theme JSON is the **chart canvas**
+ * background (almost always `#FFFFFF`), not an app chrome color. Using
+ * it directly leaves the sidebar pure white for every PBI theme, which
+ * defeats the purpose of letting the user pick a theme. Instead, derive
+ * the sidebar / chrome background as a subtle accent tint over the
+ * canvas — each theme then visibly identifies itself in the chrome
+ * while still keeping readable contrast against the dark text.
+ */
 export function applyPowerBITheme(theme: PowerBITheme): void {
     const accent = theme.dataColors[0] ?? theme.tableAccent;
+    const canvas = theme.background;
     setVars({
-        "--color-app-background": theme.background,
+        "--color-app-background": mixHex(canvas, accent, 0.10),
         "--color-app-foreground": theme.foreground,
-        "--color-app-background-hover": mixHex(theme.background, accent, 0.12),
-        "--color-app-background-selected": mixHex(theme.background, accent, 0.24),
-        "--color-app-background-pressed": mixHex(theme.background, accent, 0.36),
+        "--color-app-background-hover": mixHex(canvas, accent, 0.22),
+        "--color-app-background-selected": mixHex(canvas, accent, 0.35),
+        "--color-app-background-pressed": mixHex(canvas, accent, 0.45),
     });
 }
 

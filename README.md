@@ -29,8 +29,12 @@ cd my-org-app
 # 2. Install dependencies
 pnpm install
 
-# 3. Connect to a Rayfin workspace (populates .env.local with API URL + key)
-npx rayfin up
+# 3. Connect to a Rayfin workspace (populates .env.local with API URL + key).
+#    Always pass --workspace-uri to skip the interactive workspace search
+#    (which often fails when many workspaces match). Replace the GUID with
+#    the workspace that hosts your Org App, and the host (app/dxt/daily/msit)
+#    with the Fabric ring you want to target.
+npx rayfin up --workspace-uri "https://dxt.fabric.microsoft.com/groups/<WORKSPACE_GUID>"
 
 # 4. Sign in to Azure CLI in the tenant that owns the Org App
 az login --tenant <your-tenant-id>
