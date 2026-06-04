@@ -19,20 +19,23 @@ Start with your Org App ID, run the migration agent, and you'll have a standalon
 - **GitHub Copilot CLI** (`copilot --version`) — runs the migration agent
 - A **Power BI Org App** in your tenant, and **viewer access** to it
 
-## Scaffold + migrate (do this first, either workflow)
+## Scaffold + migrate
 
 ```powershell
-# 1. Scaffold from this template
+# 1. Scaffold from this template (also installs dependencies)
 rayfin init -t https://github.com/microsoft/fabric-org-app-template my-org-app
 cd my-org-app
 
-# 2. Install dependencies
+# 2. (Optional) Install dependencies — only if you skipped install during `rayfin init`
 pnpm install
 
 # 3. Sign in to Azure CLI in the tenant that owns the Org App
 az login --tenant <your-tenant-id>
 
-# 4. Run the migration agent
+# 4. Connect to the Fabric workspace that hosts the Org App
+npx rayfin up --workspace-id <WORKSPACE_GUID>
+
+# 5. Run the migration agent
 copilot
 ```
 
@@ -40,7 +43,9 @@ Then tell the agent:
 
 > Migrate this Org App. The Org App ID is `<paste-your-guid-here>`.
 
-The agent pulls the Org App definition, writes `src/config/orgAppManifest.ts`, patches `src/global.css` with your brand colors, and type-checks the build. After that, pick one of the workflows below.
+> **Why `rayfin up` before `copilot`?** It populates `.env.local` with `VITE_FABRIC_API_URL`, `VITE_FABRIC_PORTAL_URL`, and `VITE_RAYFIN_API_KEY`. The migration agent reads these and will refuse to start without them. Always pass `--workspace-id` explicitly — the interactive workspace search often fails when many workspaces match.
+
+The agent pulls the Org App definition, writes `src/config/orgAppManifest.ts`, patches `src/global.css` with your brand colors, and type-checks the build.
 
 ### Finding your Org App ID
 
@@ -50,34 +55,11 @@ In the Fabric portal, open the Org App and copy the GUID from the URL:
 https://app.fabric.microsoft.com/groups/<workspace-id>/orgapps/<this-is-your-org-app-id>/...
 ```
 
----
+### Deploy to Fabric
 
-## Workflow A — Local development with `rayfin dev`
-
-Use this for **iteration**: hot reload, browser devtools, fast edit cycles. The app runs on `http://localhost:5173`, auth goes to your live Fabric tenant via Rayfin SSO.
+Your workspace is already wired from step 4. Re-run `npx rayfin up` to build and publish the app to that workspace so end users can open it from the portal:
 
 ```powershell
-# 5a. Connect to a Rayfin workspace (provisions API key + writes rayfin/.env)
-npx rayfin up --workspace-id <WORKSPACE_GUID>
-
-# 6a. Start the dev server
-npx rayfin dev
-```
-
-`rayfin dev` starts Vite, reads `rayfin/.env`, and writes a fresh `.env.local` with the Vite-prefixed variables (`VITE_RAYFIN_*`, `VITE_FABRIC_*`). Hot reload is on — edit any file under `src/` and the browser refreshes automatically.
-
-> **Why `rayfin up` first?** It's the one-time step that registers your project with the Fabric workspace and stamps `RAYFIN_PUBLIC_ITEM_ID`, `RAYFIN_PUBLIC_WORKSPACE_ID`, and the publishable key into `rayfin/.env`. After this, `rayfin dev` is all you need for day-to-day work. Re-run `rayfin up` only when you want to push a new build to Fabric.
-
-Open `http://localhost:5173` — sign in once, and your Org App is live locally.
-
----
-
-## Workflow B — Deploy to Fabric with `rayfin up`
-
-Use this to **publish** the app to your Fabric workspace so end users can open it from the portal. `rayfin up` builds, packages, and deploys the static assets in one step.
-
-```powershell
-# 5b. Deploy to Fabric (--workspace-id skips the interactive workspace search)
 npx rayfin up --workspace-id <WORKSPACE_GUID>
 ```
 
@@ -89,9 +71,9 @@ You'll see output like:
   - Portal: https://app.fabric.microsoft.com/groups/<workspace>/appbackends/<item>?ctid=<tenant>
 ```
 
-Open the **Portal** URL — that's your app, running inside the Fabric portal, accessible to anyone you share it with in that workspace.
+Open the **Portal** URL — that's your app, running inside the Fabric portal, accessible to anyone you share it with in that workspace. Re-run `npx rayfin up` whenever you want to redeploy; the same project ID is reused, so users keep the same URL.
 
-Re-run `npx rayfin up` whenever you want to redeploy. The same project ID is reused, so users keep the same URL.
+> **For local development with hot reload**, run `npx rayfin dev`. It starts Vite on `http://localhost:5173`, reuses the `rayfin/.env` from your earlier `rayfin up`, and refreshes the browser when you edit any file under `src/`. Auth still goes to your live Fabric tenant via Rayfin SSO.
 
 ---
 
@@ -129,15 +111,21 @@ After `rayfin up` runs, the values flow into `.env.local` as `VITE_FABRIC_PORTAL
 
 ```text
 fabric-org-app-template/
-├── .agents/skills/             # Migration agent skills (org-app-fetch, parsing, theming, validation)
+├── .agents/skills/             # Migration agent skills: org-app-fetch, org-app-parsing,
+│                               #   org-app-theming, app-design, app-validation,
+│                               #   powerbi-secure-embed, playwright-cli
 ├── rayfin/
 │   └── rayfin.yml              # Rayfin service config (auth, static hosting)
 ├── src/
-│   ├── components/             # AppShell, Sidebar, Topbar, HomePage, ReportEmbed, ConfigurationDialog, …
+│   ├── components/             # AppShell, AuthGate, Sidebar, Topbar, OverviewPage, ContentPage,
+│   │                           #   ReportEmbed, RdlEmbed, EmbedLinkPage, ConfigurationDialog,
+│   │                           #   SettingsMenu, ThemeSubmenu, OrgAppThemeProvider,
+│   │                           #   UnconfiguredAppPreview
 │   ├── config/
 │   │   ├── orgAppManifest.ts   # ← Populated by the migration agent
 │   │   └── themePresets.ts     # Built-in Power BI themes (Default, Executive, …, Sunset)
-│   ├── hooks/                  # use-auth, use-org-app-theme, use-sidebar-collapsed
+│   ├── hooks/                  # use-auth, use-org-app-theme, use-theme, use-sidebar-collapsed,
+│   │                           #   auth.context, org-app-theme.context
 │   ├── lib/                    # fabricUrls (URL builders), theme (CSS var mapping), rayfin-client, utils
 │   ├── services/
 │   │   └── rayfin-auth.service.ts
@@ -147,6 +135,7 @@ fabric-org-app-template/
 │   ├── global.css              # Tailwind v4 @theme tokens (Fabric + Org App)
 │   └── main.tsx                # Mounts AuthProvider → AuthGate → App
 ├── AGENTS.md                   # Auto-loaded by Copilot CLI
+├── rayfin-template.yml         # Template metadata consumed by `rayfin init`
 ├── package.json
 └── README.md                   # ← This file
 ```
@@ -155,8 +144,9 @@ fabric-org-app-template/
 
 | Script | Use |
 |---|---|
-| `pnpm dev` *(or `npx rayfin dev`)* | Vite dev server on `http://localhost:5173` |
-| `pnpm build` | Production build into `dist/` |
+| `pnpm dev` *(or `npx rayfin dev`)* | Vite dev server on `http://localhost:5173`. The `predev` hook auto-runs `rayfin env --framework vite` to refresh `.env.local`. |
+| `pnpm build` | Production build into `dist/`. The `prebuild` hook also refreshes `.env.local`. |
+| `pnpm preview` | Serve the built `dist/` locally for a smoke test |
 | `npx rayfin up` | Build + deploy to Fabric |
 | `pnpm tsc --noEmit` | Type-check only |
 | `pnpm lint` | ESLint |
