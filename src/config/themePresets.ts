@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+import type { OrgAppTheme } from "@/types/orgAppManifest";
+
 /**
  * Built-in Power BI report themes, expressed in the official Power BI
  * theme JSON schema (https://learn.microsoft.com/power-bi/create-reports/desktop-report-themes).
@@ -17,6 +19,12 @@
  *     "tableAccent": "#..."
  *   }
  *
+ * The optional `shell` block overrides the derived sidebar/topbar shell
+ * colors. When omitted, lib/theme.ts derives a tinted shell from
+ * `background` + `dataColors[0]`. Brand themes (Power BI yellow/black,
+ * Microsoft Fabric) ship explicit `shell` values so the chrome matches
+ * the brand exactly rather than a derived approximation.
+ *
  * Future extension point: the agent could append organization-specific
  * themes here, or a future skill could read/import JSON theme files.
  */
@@ -26,12 +34,28 @@ export interface PowerBITheme {
     background: string;
     foreground: string;
     tableAccent: string;
+    /** Optional explicit shell colors; bypasses the derivation in lib/theme.ts. */
+    shell?: OrgAppTheme;
 }
 
 /**
- * Palettes mirror the Power BI Desktop built-in themes. Colors are taken
- * from the public Power BI theme gallery so users see exactly what they
- * would in the Power BI service.
+ * Built-in themes shown in the runtime theme picker.
+ *
+ * - **Default** is pure white shell — always the safe baseline.
+ * - **Power BI** and **Microsoft Fabric** are brand presets and supply
+ *   explicit `shell` overrides so the chrome reads as the official
+ *   brand rather than a tinted approximation.
+ * - The rest mirror the Power BI Desktop built-in report themes; their
+ *   shells are derived from `background` + `dataColors[0]` at apply
+ *   time, giving the chrome a subtle accent tint per theme.
+ *
+ * Brand color sources:
+ * - Power BI: brand yellow `#F2C811` is the canonical Power BI logo
+ *   yellow used across Power BI Desktop, marketing, and the favicon.
+ *   Dark chrome is Fluent neutral `#252423`.
+ * - Microsoft Fabric: brand blue `#0F6CBD` is the Fluent UI brand blue
+ *   used by the Microsoft Fabric portal chrome (app.fabric.microsoft.com).
+ *   The dark variant uses Fluent neutral `#242424` with the same accent.
  */
 export const builtInThemes: PowerBITheme[] = [
     {
@@ -40,6 +64,64 @@ export const builtInThemes: PowerBITheme[] = [
         background: "#FFFFFF",
         foreground: "#252423",
         tableAccent: "#118DFF",
+        // Pure white shell — the always-on safe baseline.
+        shell: {
+            background: "#FFFFFF",
+            foreground: "#252423",
+            backgroundHover: "#F3F2F1",
+            backgroundSelected: "#EDEBE9",
+            backgroundPressed: "#E1DFDD",
+            foregroundSelected: "#252423",
+        },
+    },
+    {
+        name: "Power BI",
+        dataColors: ["#F2C811", "#118DFF", "#E66C37", "#6B007B", "#E044A7", "#744EC2", "#D9B300", "#D64550"],
+        background: "#FFFFFF",
+        foreground: "#252423",
+        tableAccent: "#F2C811",
+        // Brand: Power BI yellow on Fluent neutral dark.
+        shell: {
+            background: "#252423",
+            foreground: "#FFFFFF",
+            backgroundHover: "#3B3A39",
+            backgroundSelected: "#F2C811",
+            backgroundPressed: "#D9B400",
+            // Dark text against the saturated yellow active background.
+            foregroundSelected: "#252423",
+        },
+    },
+    {
+        name: "Microsoft Fabric",
+        dataColors: ["#0F6CBD", "#117865", "#1A78C5", "#118DFF", "#E66C37", "#744EC2", "#D9B300", "#D64550"],
+        background: "#FFFFFF",
+        foreground: "#252423",
+        tableAccent: "#0F6CBD",
+        // Brand: Microsoft Fabric portal blue on white.
+        shell: {
+            background: "#0F6CBD",
+            foreground: "#FFFFFF",
+            backgroundHover: "#1A78C5",
+            backgroundSelected: "#2684CC",
+            backgroundPressed: "#1565A8",
+            foregroundSelected: "#FFFFFF",
+        },
+    },
+    {
+        name: "Microsoft Fabric Dark",
+        dataColors: ["#0F6CBD", "#117865", "#1A78C5", "#118DFF", "#E66C37", "#744EC2", "#D9B300", "#D64550"],
+        background: "#FFFFFF",
+        foreground: "#252423",
+        tableAccent: "#0F6CBD",
+        // Brand: Fluent neutral dark chrome with Fabric blue accent.
+        shell: {
+            background: "#242424",
+            foreground: "#FFFFFF",
+            backgroundHover: "#3B3A39",
+            backgroundSelected: "#0F6CBD",
+            backgroundPressed: "#1565A8",
+            foregroundSelected: "#FFFFFF",
+        },
     },
     {
         name: "Executive",

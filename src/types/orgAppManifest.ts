@@ -135,6 +135,14 @@ export interface OrgAppTheme {
     backgroundHover: string;
     backgroundSelected: string;
     backgroundPressed: string;
+    /**
+     * Optional text color used for the active (selected) nav item.
+     * Required when `backgroundSelected` is a saturated accent (e.g.
+     * Power BI brand yellow) that would otherwise clash with the
+     * default `foreground` text color. When omitted, the shell falls
+     * back to `foreground`.
+     */
+    foregroundSelected?: string;
 }
 
 // --- helpers ---------------------------------------------------------------

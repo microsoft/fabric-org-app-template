@@ -26,11 +26,16 @@ export const orgAppManifest: OrgAppManifest = {
     overview: undefined,
     sections: [],
     theme: {
-        background: "#0f6cbd",
-        foreground: "#ffffff",
-        backgroundHover: "#1a78c5",
-        backgroundSelected: "#2684cc",
-        backgroundPressed: "#1565a8",
+        // Default to a neutral white shell. The org-app-theming skill
+        // overwrites this from the workloadPayload settings during the
+        // migration; brand themes can be picked at runtime from the
+        // theme presets (see src/config/themePresets.ts).
+        background: "#ffffff",
+        foreground: "#252423",
+        backgroundHover: "#f3f2f1",
+        backgroundSelected: "#edebe9",
+        backgroundPressed: "#e1dfdd",
+        foregroundSelected: "#252423",
     },
 };
 

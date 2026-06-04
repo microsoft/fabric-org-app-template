@@ -32,21 +32,33 @@ export function applyOrgAppTheme(theme: OrgAppTheme): void {
         "--color-app-background-hover": theme.backgroundHover,
         "--color-app-background-selected": theme.backgroundSelected,
         "--color-app-background-pressed": theme.backgroundPressed,
+        // Fall back to the base foreground when the theme doesn't
+        // override the active-item text color.
+        "--color-app-foreground-selected": theme.foregroundSelected ?? theme.foreground,
     });
 }
 
 /**
  * Map a Power BI built-in report theme onto the shell vars.
  *
- * `theme.background` in the Power BI theme JSON is the **chart canvas**
- * background (almost always `#FFFFFF`), not an app chrome color. Using
- * it directly leaves the sidebar pure white for every PBI theme, which
- * defeats the purpose of letting the user pick a theme. Instead, derive
- * the sidebar / chrome background as a subtle accent tint over the
- * canvas — each theme then visibly identifies itself in the chrome
- * while still keeping readable contrast against the dark text.
+ * If the theme provides an explicit `shell` block (brand themes such
+ * as Power BI yellow/black or Microsoft Fabric blue), that wins — the
+ * chrome is rendered exactly as the brand intends.
+ *
+ * Otherwise the shell is derived: `theme.background` in the Power BI
+ * theme JSON is the **chart canvas** background (almost always
+ * `#FFFFFF`), not an app chrome color. Using it directly leaves the
+ * sidebar pure white for every PBI theme, which defeats the purpose
+ * of letting the user pick a theme. So we derive the sidebar / chrome
+ * background as a subtle accent tint over the canvas — each theme
+ * then visibly identifies itself in the chrome while still keeping
+ * readable contrast against the dark text.
  */
 export function applyPowerBITheme(theme: PowerBITheme): void {
+    if (theme.shell) {
+        applyOrgAppTheme(theme.shell);
+        return;
+    }
     const accent = theme.dataColors[0] ?? theme.tableAccent;
     const canvas = theme.background;
     setVars({
@@ -55,6 +67,10 @@ export function applyPowerBITheme(theme: PowerBITheme): void {
         "--color-app-background-hover": mixHex(canvas, accent, 0.22),
         "--color-app-background-selected": mixHex(canvas, accent, 0.35),
         "--color-app-background-pressed": mixHex(canvas, accent, 0.45),
+        // Derived shells keep the same dark `theme.foreground` for the
+        // selected item — the selected background is only a 35% tint of
+        // the accent, so contrast remains adequate.
+        "--color-app-foreground-selected": theme.foreground,
     });
 }
 

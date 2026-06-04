@@ -36,12 +36,16 @@
   --color-ring: #0f6cbd;
 
   /* Org App theme — populated by org-app-theming skill from the
-     workloadPayload.settings.theme block. */
-  --color-app-background: #0f6cbd;
-  --color-app-foreground: #ffffff;
-  --color-app-background-hover: #1a78c5;
-  --color-app-background-selected: #2684cc;
-  --color-app-background-pressed: #1565a8;
+     workloadPayload.settings.theme block. Defaults below are a neutral
+     light shell so an unconfigured app reads as plain white chrome
+     rather than a colored placeholder. Brand colors are applied at
+     runtime via the theme picker (see src/lib/theme.ts). */
+  --color-app-background: #ffffff;
+  --color-app-foreground: #252423;
+  --color-app-background-hover: #f3f2f1;
+  --color-app-background-selected: #edebe9;
+  --color-app-background-pressed: #e1dfdd;
+  --color-app-foreground-selected: #252423;
 
   --radius-none: 0;
   --radius-sm: 2px;
@@ -171,7 +175,10 @@
      theme switcher overrides at runtime. */
   .app-nav-idle:hover { background: var(--color-app-background-hover); }
   .app-nav-idle:active { background: var(--color-app-background-pressed); }
-  .app-nav-active { background: var(--color-app-background-selected); }
+  .app-nav-active {
+    background: var(--color-app-background-selected);
+    color: var(--color-app-foreground-selected);
+  }
 }
 
 html,
