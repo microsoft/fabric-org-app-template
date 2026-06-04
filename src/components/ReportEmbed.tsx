@@ -13,6 +13,34 @@ interface ReportEmbedProps {
 }
 
 /**
+ * Derive the Power BI embed host from `VITE_FABRIC_PORTAL_URL` (set by
+ * `rayfin up` / `rayfin env`). Power BI uses the same env-slug convention
+ * as the Fabric portal — same subdomain prefix, `fabric.microsoft.com`
+ * replaced with `powerbi.com`.
+ *
+ *   app.fabric.microsoft.com    → app.powerbi.com
+ *   daily.fabric.microsoft.com  → daily.powerbi.com
+ *   msit.fabric.microsoft.com   → msit.powerbi.com
+ *   dxt.fabric.microsoft.com    → dxt.powerbi.com
+ *
+ * Sovereign clouds (powerbigov.us, powerbi.cn, …) are not yet supported —
+ * extend this when the template needs them.
+ */
+function getPowerBIEmbedOrigin(): string {
+    const portal = import.meta.env.VITE_FABRIC_PORTAL_URL;
+    if (portal) {
+        try {
+            const host = new URL(portal).host; // e.g. "daily.fabric.microsoft.com"
+            const m = host.match(/^([^.]+)\.fabric\.microsoft\.com$/i);
+            if (m) return `https://${m[1]}.powerbi.com`;
+        } catch {
+            /* fall through */
+        }
+    }
+    return "https://app.powerbi.com";
+}
+
+/**
  * Secure embed iframe for a Power BI report.
  *
  * Uses the `autoAuth=true` flow so the AAD cookie from the user's
@@ -35,7 +63,7 @@ export function ReportEmbed({ manifest }: ReportEmbedProps) {
         );
     }
 
-    const src = new URL("https://app.powerbi.com/reportEmbed");
+    const src = new URL(`${getPowerBIEmbedOrigin()}/reportEmbed`);
     src.searchParams.set("reportId", report.itemId);
     src.searchParams.set("groupId", manifest.workspaceId);
     src.searchParams.set("autoAuth", "true");
