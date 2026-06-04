@@ -52,10 +52,30 @@ Save this — it goes into the manifest's `tenantId` field for the secure embed 
 
 ### 3. Discover the cluster URL
 
+The global-service host **must match the Fabric environment the user is targeting**, otherwise the cluster lookup succeeds against the wrong ring and the next call returns `404 PowerBIEntityNotFound`.
+
+Read `RAYFIN_FABRIC_PORTAL_URL` from the user's environment and map it to the matching `powerbi.com` host:
+
+| `RAYFIN_FABRIC_PORTAL_URL` (or `VITE_FABRIC_PORTAL_URL` in `.env.local`) | Global service URL |
+|---|---|
+| `https://app.fabric.microsoft.com/` _(default / prod)_ | `https://api.powerbi.com/powerbi/globalservice/v201606/clusterdetails` |
+| `https://daily.fabric.microsoft.com/` | `https://daily.powerbi.com/powerbi/globalservice/v201606/clusterdetails` |
+| `https://dxt.fabric.microsoft.com/` | `https://dxt.powerbi.com/powerbi/globalservice/v201606/clusterdetails` |
+| `https://msit.fabric.microsoft.com/` | `https://msit.powerbi.com/powerbi/globalservice/v201606/clusterdetails` |
+
+The rule: take the first hostname label of the Fabric portal URL (`app`/`daily`/`dxt`/`msit`), use it as the `powerbi.com` subdomain (with `app` → `api`).
+
 ```powershell
+$portal = $env:RAYFIN_FABRIC_PORTAL_URL
+if (-not $portal) { $portal = "https://app.fabric.microsoft.com/" }
+$ring = ([System.Uri]$portal).Host.Split(".")[0].ToLower()
+$gsHost = if ($ring -eq "app") { "api.powerbi.com" } else { "$ring.powerbi.com" }
+
 $cluster = (curl.exe -s -H "Authorization: Bearer $token" `
-  "https://api.powerbi.com/powerbi/globalservice/v201606/clusterdetails" | ConvertFrom-Json).clusterUrl
+  "https://$gsHost/powerbi/globalservice/v201606/clusterdetails" | ConvertFrom-Json).clusterUrl
 ```
+
+> The same mapping is implemented in code at `src/lib/fabricUrls.ts` (`getPowerBIGlobalServiceOrigin`) and consumed by `src/lib/cluster.ts`. Keep them in sync.
 
 ### 4. Fetch the Org App envelope
 
@@ -86,5 +106,5 @@ Hand off the parsed `$envelope` object plus `$tenantId` to **org-app-parsing**.
 |---|---|---|
 | `401 Unauthorized` | Token expired or wrong resource | Re-run step 1; verify `--resource` is exactly `https://analysis.windows.net/powerbi/api` |
 | `403 Forbidden` | User lacks access to the Org App | Ask the user to confirm they are a viewer of the Org App in `app.powerbi.com` |
-| `404 Not Found` | Wrong cluster, wrong tenant, or ID is not an Org App | Confirm tenant via `az account show`; verify the ID in `app.powerbi.com` URL |
+| `404 Not Found` | Wrong cluster (ring mismatch), wrong tenant, or ID is not an Org App | First, re-check `RAYFIN_FABRIC_PORTAL_URL` and confirm the global-service URL in step 3 used the matching ring (`daily.powerbi.com` for `daily.fabric.microsoft.com`, etc.). Then confirm tenant via `az account show`, then verify the ID by opening the Org App in the matching portal (e.g. `https://daily.fabric.microsoft.com/groups/me/apps/<id>`). |
 | `clusterUrl` is null | Token was acquired for the wrong resource | Re-acquire with the exact resource above |

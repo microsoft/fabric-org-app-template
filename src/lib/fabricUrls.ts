@@ -20,6 +20,43 @@ export function getFabricOrigin(): string {
     return raw.replace(/\/+$/, "");
 }
 
+/**
+ * Derive the Power BI global-service origin from the Fabric portal origin.
+ *
+ * The legacy Power BI `/powerbi/globalservice/v201606/clusterdetails` endpoint
+ * is the only way to discover the tenant's home cluster for Org App metadata
+ * (Org Apps are not exposed via the public Fabric REST yet). The global
+ * service is hosted on a per-ring `powerbi.com` host, parallel to the Fabric
+ * portal:
+ *
+ * | Fabric portal                          | Power BI global service     |
+ * | -------------------------------------- | --------------------------- |
+ * | `https://app.fabric.microsoft.com`     | `https://api.powerbi.com`   |
+ * | `https://daily.fabric.microsoft.com`   | `https://daily.powerbi.com` |
+ * | `https://dxt.fabric.microsoft.com`     | `https://dxt.powerbi.com`   |
+ * | `https://msit.fabric.microsoft.com`    | `https://msit.powerbi.com`  |
+ *
+ * Anything else (or no env var) falls back to the prod origin.
+ */
+export function getPowerBIGlobalServiceOrigin(): string {
+    const host = new URL(getFabricOrigin()).hostname.toLowerCase();
+    const ring = host.split(".")[0]; // "app" | "daily" | "dxt" | "msit" | ...
+    switch (ring) {
+        case "daily":
+        case "dxt":
+        case "msit":
+            return `https://${ring}.powerbi.com`;
+        case "app":
+        default:
+            return "https://api.powerbi.com";
+    }
+}
+
+/** Full URL for the `clusterdetails` call used to discover the tenant's home cluster. */
+export function getPowerBIClusterDetailsUrl(): string {
+    return `${getPowerBIGlobalServiceOrigin()}/powerbi/globalservice/v201606/clusterdetails`;
+}
+
 /** Build the secure-embed URL for a single report. */
 export function getReportEmbedUrl(args: {
     reportItemId: string;

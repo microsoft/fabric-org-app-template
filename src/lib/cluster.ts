@@ -12,10 +12,14 @@
  * per-tenant and per-environment. We resolve it once via the public
  * `globalservice/v201606/clusterdetails` endpoint and cache the result
  * for the lifetime of the page.
+ *
+ * The global service host is derived from `VITE_FABRIC_PORTAL_URL`
+ * (set by rayfin from `RAYFIN_FABRIC_PORTAL_URL`) so that pointing the
+ * app at `daily.fabric.microsoft.com` automatically routes to
+ * `daily.powerbi.com` instead of prod. See `lib/fabricUrls.ts`.
  */
 
-const GLOBAL_SERVICE_URL =
-    "https://api.powerbi.com/powerbi/globalservice/v201606/clusterdetails";
+import { getPowerBIClusterDetailsUrl } from "./fabricUrls";
 
 interface ClusterDetailsResponse {
     clusterUrl: string;
@@ -31,7 +35,7 @@ let cached: Promise<string> | null = null;
 export function getClusterUrl(token: string): Promise<string> {
     if (cached) return cached;
     cached = (async () => {
-        const res = await fetch(GLOBAL_SERVICE_URL, {
+        const res = await fetch(getPowerBIClusterDetailsUrl(), {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
