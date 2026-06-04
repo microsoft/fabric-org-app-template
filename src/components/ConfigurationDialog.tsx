@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, ExternalLink, X } from "lucide-react";
 import type { OrgAppManifest } from "@/types/orgAppManifest";
-import { walkNavItems } from "@/types/orgAppManifest";
+import { getContentPages, getSections, walkNavItems } from "@/types/orgAppManifest";
 import { getOpenAppUrl } from "@/lib/fabricUrls";
 
 interface ConfigurationDialogProps {
@@ -82,9 +82,7 @@ export function ConfigurationDialog({ manifest, onClose }: ConfigurationDialogPr
                             <Row label="Tenant ID" value={manifest.tenantId} mono />
                             <Row
                                 label="Nav items"
-                                value={`${countLeaves(manifest)} routable${
-                                    manifest.overview ? " + overview" : ""
-                                }`}
+                                value={describeNavCounts(manifest)}
                             />
                         </dl>
 
@@ -172,16 +170,19 @@ function Row({ label, value, mono }: RowProps) {
 }
 
 /**
- * Counts routable leaf nav items across all sections (reports, RDL
- * reports, embedded links, and new-tab links). Recurses into nested
- * sections.
+ * Summarizes the manifest's nav: counts routable leaves across all
+ * sections (reports, RDL reports, embed links, new-tab links) and any
+ * author-supplied content pages.
  */
-function countLeaves(manifest: OrgAppManifest): number {
-    let n = 0;
-    for (const section of manifest.sections) {
+function describeNavCounts(manifest: OrgAppManifest): string {
+    let leaves = 0;
+    for (const section of getSections(manifest.nav)) {
         for (const it of walkNavItems(section.items)) {
-            if (it.kind !== "section") n++;
+            if (it.kind !== "section") leaves++;
         }
     }
-    return n;
+    const pages = getContentPages(manifest.nav).length;
+    const pageSuffix =
+        pages === 0 ? "" : ` + ${pages} content page${pages === 1 ? "" : "s"}`;
+    return `${leaves} routable${pageSuffix}`;
 }

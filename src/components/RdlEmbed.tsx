@@ -7,7 +7,7 @@
 
 import { useParams } from "react-router-dom";
 import type { OrgAppManifest, OrgAppRdlReportItem } from "@/types/orgAppManifest";
-import { walkNavItems } from "@/types/orgAppManifest";
+import { getSections, walkNavItems } from "@/types/orgAppManifest";
 import { getRdlEmbedUrl } from "@/lib/fabricUrls";
 
 interface RdlEmbedProps {
@@ -55,7 +55,7 @@ function findRdlReport(
     manifest: OrgAppManifest,
     itemId: string,
 ): OrgAppRdlReportItem | undefined {
-    for (const section of manifest.sections) {
+    for (const section of getSections(manifest.nav)) {
         for (const it of walkNavItems(section.items)) {
             if (it.kind === "rdlreport" && it.itemId === itemId) return it;
         }

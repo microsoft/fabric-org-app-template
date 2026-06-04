@@ -7,7 +7,7 @@
 
 import { useParams } from "react-router-dom";
 import type { OrgAppManifest, OrgAppReportItem } from "@/types/orgAppManifest";
-import { walkNavItems } from "@/types/orgAppManifest";
+import { getSections, walkNavItems } from "@/types/orgAppManifest";
 import { getReportEmbedUrl } from "@/lib/fabricUrls";
 
 interface ReportEmbedProps {
@@ -58,7 +58,7 @@ function findReport(
     manifest: OrgAppManifest,
     itemId: string,
 ): OrgAppReportItem | undefined {
-    for (const section of manifest.sections) {
+    for (const section of getSections(manifest.nav)) {
         for (const it of walkNavItems(section.items)) {
             if (it.kind === "report" && it.itemId === itemId) return it;
         }

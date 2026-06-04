@@ -8,6 +8,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
+import { ContentPage } from "@/components/ContentPage";
 import { EmbedLinkPage } from "@/components/EmbedLinkPage";
 import { OrgAppThemeProvider } from "@/components/OrgAppThemeProvider";
 import { OverviewPage } from "@/components/OverviewPage";
@@ -15,18 +16,16 @@ import { RdlEmbed } from "@/components/RdlEmbed";
 import { ReportEmbed } from "@/components/ReportEmbed";
 import { UnconfiguredAppPreview } from "@/components/UnconfiguredAppPreview";
 import { isUnconfigured, orgAppManifest } from "@/config/orgAppManifest";
-import { findFirstLeaf, getNavItemRoute } from "@/types/orgAppManifest";
 
 export default function App() {
     if (isUnconfigured(orgAppManifest)) {
         return <UnconfiguredAppPreview />;
     }
 
-    // Landing route: prefer the overview if the Org App has one (matches
-    // the portal); otherwise jump straight to the first routable leaf
-    // (first report, RDL, or embed link in source order).
-    const landingPath = computeLandingPath();
-
+    // Landing route is always the auto-generated cards Overview page
+    // (mirrors the Power BI Org App "About" page). Author-supplied
+    // content pages (envelope `elementType: "overview"`) are rendered at
+    // `/page/:elementId` in source order — zero, one, or many of them.
     return (
         <OrgAppThemeProvider manifest={orgAppManifest}>
             <BrowserRouter>
@@ -34,11 +33,15 @@ export default function App() {
                     <Route element={<AppShell manifest={orgAppManifest} />}>
                         <Route
                             index
-                            element={<Navigate to={landingPath} replace />}
+                            element={<Navigate to="/overview" replace />}
                         />
                         <Route
                             path="overview"
                             element={<OverviewPage manifest={orgAppManifest} />}
+                        />
+                        <Route
+                            path="page/:elementId"
+                            element={<ContentPage manifest={orgAppManifest} />}
                         />
                         <Route
                             path="report/:itemId"
@@ -54,21 +57,11 @@ export default function App() {
                         />
                         <Route
                             path="*"
-                            element={<Navigate to={landingPath} replace />}
+                            element={<Navigate to="/overview" replace />}
                         />
                     </Route>
                 </Routes>
             </BrowserRouter>
         </OrgAppThemeProvider>
     );
-}
-
-function computeLandingPath(): string {
-    if (orgAppManifest.overview) return "/overview";
-    const firstLeaf = findFirstLeaf(orgAppManifest.sections);
-    const route = firstLeaf ? getNavItemRoute(firstLeaf) : undefined;
-    // Fall back to the (currently empty) overview route if there's
-    // nothing to show — UnconfiguredAppPreview handles the truly-empty
-    // case before we get here.
-    return route ?? "/overview";
 }

@@ -8,13 +8,14 @@
 import { useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
+    BookOpen,
     ChevronDown,
     ChevronRight,
     ExternalLink,
     FileBarChart2,
     FileText,
     Globe,
-    Home,
+    LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getOpenReportUrl } from "@/lib/fabricUrls";
@@ -30,8 +31,15 @@ interface SidebarProps {
 }
 
 /**
- * Manifest-driven sidebar. Renders an Introduction link (if the manifest
- * has an overview) and a recursive tree of sections + leaf items.
+ * Manifest-driven sidebar. Renders, in order:
+ *   1. The always-on **Overview** link (cards landing at `/overview`).
+ *   2. Each entry in `manifest.nav` in source order:
+ *      - `contentPage` → markdown page at `/page/:elementId`, BookOpen icon
+ *      - `section`     → recursive section node
+ *
+ * Apps may have zero, one, or many content pages, freely interleaved
+ * with sections — the sidebar mirrors whatever order the envelope
+ * produced.
  *
  * Layout decisions:
  *   - Recursive: a `section` item type can be nested inside another
@@ -40,10 +48,12 @@ interface SidebarProps {
  *   - Initial collapse: every section starts collapsed; the one
  *     containing the active route is auto-expanded on mount.
  *   - Item icons:
- *       report        → bar chart
- *       rdlreport     → document (paginated reports are documents)
- *       linkEmbed     → globe (embedded but cross-tenant; treated as web content)
- *       linkNewtab    → external-link
+ *       overview cards → LayoutGrid
+ *       contentPage    → BookOpen
+ *       report         → bar chart
+ *       rdlreport      → document (paginated reports are documents)
+ *       linkEmbed      → globe (embedded but cross-tenant; treated as web content)
+ *       linkNewtab     → external-link
  *   - Newtab links render as plain `<a target="_blank">` (no active state).
  *   - Active / hover / pressed styles come from `--color-app-*` tokens.
  *
@@ -64,35 +74,57 @@ export function Sidebar({ manifest, collapsed }: SidebarProps) {
         >
             <nav className="flex-1 overflow-y-auto overflow-x-hidden px-xs py-s">
                 <ul className="flex flex-col gap-xs">
-                    {manifest.overview ? (
-                        <li>
-                            <NavLink
-                                to="/overview"
-                                className={({ isActive }) =>
-                                    cn(
-                                        "flex items-center gap-s rounded-lg px-s py-s text-300 leading-300 transition-colors",
-                                        isActive ? "app-nav-active" : "app-nav-idle",
-                                    )
-                                }
-                                title={collapsed ? manifest.overview.title : undefined}
-                            >
-                                <Home className="icon-size-200 shrink-0" />
-                                {!collapsed ? (
-                                    <span className="truncate">Introduction</span>
-                                ) : null}
-                            </NavLink>
-                        </li>
-                    ) : null}
+                    <li>
+                        <NavLink
+                            to="/overview"
+                            className={({ isActive }) =>
+                                cn(
+                                    "flex items-center gap-s rounded-lg px-s py-s text-300 leading-300 transition-colors",
+                                    isActive ? "app-nav-active" : "app-nav-idle",
+                                )
+                            }
+                            title={collapsed ? "Overview" : undefined}
+                        >
+                            <LayoutGrid className="icon-size-200 shrink-0" />
+                            {!collapsed ? (
+                                <span className="truncate">Overview</span>
+                            ) : null}
+                        </NavLink>
+                    </li>
 
-                    {manifest.sections.map((s) => (
-                        <SectionNode
-                            key={s.elementId}
-                            manifest={manifest}
-                            section={s}
-                            depth={0}
-                            collapsed={collapsed}
-                        />
-                    ))}
+                    {manifest.nav.map((entry) =>
+                        entry.kind === "contentPage" ? (
+                            <li key={entry.elementId}>
+                                <NavLink
+                                    to={`/page/${entry.elementId}`}
+                                    className={({ isActive }) =>
+                                        cn(
+                                            "flex items-center gap-s rounded-lg px-s py-s text-300 leading-300 transition-colors",
+                                            isActive
+                                                ? "app-nav-active"
+                                                : "app-nav-idle",
+                                        )
+                                    }
+                                    title={collapsed ? entry.displayName : undefined}
+                                >
+                                    <BookOpen className="icon-size-200 shrink-0" />
+                                    {!collapsed ? (
+                                        <span className="truncate">
+                                            {entry.displayName}
+                                        </span>
+                                    ) : null}
+                                </NavLink>
+                            </li>
+                        ) : (
+                            <SectionNode
+                                key={entry.elementId}
+                                manifest={manifest}
+                                section={entry}
+                                depth={0}
+                                collapsed={collapsed}
+                            />
+                        ),
+                    )}
                 </ul>
             </nav>
         </aside>

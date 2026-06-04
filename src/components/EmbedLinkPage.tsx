@@ -7,7 +7,7 @@
 
 import { useParams } from "react-router-dom";
 import type { OrgAppManifest, OrgAppLinkEmbedItem } from "@/types/orgAppManifest";
-import { walkNavItems } from "@/types/orgAppManifest";
+import { getSections, walkNavItems } from "@/types/orgAppManifest";
 
 interface EmbedLinkPageProps {
     manifest: OrgAppManifest;
@@ -53,7 +53,7 @@ function findEmbedLink(
     manifest: OrgAppManifest,
     elementId: string,
 ): OrgAppLinkEmbedItem | undefined {
-    for (const section of manifest.sections) {
+    for (const section of getSections(manifest.nav)) {
         for (const it of walkNavItems(section.items)) {
             if (it.kind === "linkEmbed" && it.elementId === elementId) return it;
         }

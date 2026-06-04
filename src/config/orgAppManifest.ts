@@ -23,8 +23,7 @@ export const orgAppManifest: OrgAppManifest = {
     displayName: "",
     description: "",
     logo: undefined,
-    overview: undefined,
-    sections: [],
+    nav: [],
     theme: {
         // Default to a neutral white shell. The org-app-theming skill
         // overwrites this from the workloadPayload settings during the
