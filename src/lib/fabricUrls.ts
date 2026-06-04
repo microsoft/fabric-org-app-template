@@ -25,7 +25,7 @@ export function getFabricOrigin(): string {
     return raw.replace(/\/+$/, "");
 }
 
-/** Build the secure-embed URL for a single report. */
+/** Build the secure-embed URL for a single Power BI report. */
 export function getReportEmbedUrl(args: {
     reportItemId: string;
     workspaceId: string;
@@ -37,6 +37,25 @@ export function getReportEmbedUrl(args: {
     url.searchParams.set("autoAuth", "true");
     url.searchParams.set("actionBarEnabled", "true");
     url.searchParams.set("reportCopilotInEmbed", "true");
+    if (args.tenantId) url.searchParams.set("ctid", args.tenantId);
+    return url.toString();
+}
+
+/**
+ * Build the secure-embed URL for a paginated (RDL) report.
+ *
+ * The portal uses `/rdlEmbed` (not `/reportEmbed`) for paginated reports;
+ * everything else (`autoAuth`, `ctid`, `groupId`) is identical.
+ */
+export function getRdlEmbedUrl(args: {
+    reportItemId: string;
+    workspaceId: string;
+    tenantId?: string;
+}): string {
+    const url = new URL(`${getFabricOrigin()}/rdlEmbed`);
+    url.searchParams.set("reportId", args.reportItemId);
+    url.searchParams.set("groupId", args.workspaceId);
+    url.searchParams.set("autoAuth", "true");
     if (args.tenantId) url.searchParams.set("ctid", args.tenantId);
     return url.toString();
 }
@@ -55,7 +74,8 @@ export function getOpenAppUrl(manifest: OrgAppManifest): string {
 }
 
 /**
- * Deep link to open a single report in the Power BI / Fabric portal.
+ * Deep link to open a single Power BI report inside the Org App in the
+ * Power BI / Fabric portal.
  *
  * Note: the path segment is **singular** `report` (matches the portal
  * URL `/groups/{ws}/orgapps/{appId}/report/{reportId}`), not `reports`.
@@ -67,4 +87,16 @@ export function getOpenReportUrl(
     const url = new URL(`${getFabricOrigin()}/groups/${manifest.workspaceId}/orgapps/${manifest.orgAppId}/report/${reportItemId}`);
     if (manifest.tenantId) url.searchParams.set("ctid", manifest.tenantId);
     return url.toString();
+}
+
+/**
+ * Deep link to open a paginated (RDL) report inside the Org App in the
+ * portal. Same path structure as `getOpenReportUrl`; the portal handles
+ * the artifact-type lookup server-side.
+ */
+export function getOpenRdlUrl(
+    manifest: OrgAppManifest,
+    reportItemId: string,
+): string {
+    return getOpenReportUrl(manifest, reportItemId);
 }

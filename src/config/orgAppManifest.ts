@@ -22,7 +22,9 @@ export const orgAppManifest: OrgAppManifest = {
     tenantId: "",
     displayName: "",
     description: "",
-    reports: [],
+    logo: undefined,
+    overview: undefined,
+    sections: [],
     theme: {
         background: "#0f6cbd",
         foreground: "#ffffff",

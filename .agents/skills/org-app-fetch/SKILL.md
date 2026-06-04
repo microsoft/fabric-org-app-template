@@ -71,18 +71,28 @@ if (-not $portal) { $portal = "https://app.fabric.microsoft.com/" }
 $ring = ([System.Uri]$portal).Host.Split(".")[0].ToLower()
 $gsHost = if ($ring -eq "app") { "api.powerbi.com" } else { "$ring.powerbi.com" }
 
-# Capture response headers (-D -) into stdout; discard body (-o $null).
-# Non-prod rings (dxt, daily) return the portal SPA HTML for GETs on this
-# endpoint, but the canonical cluster URL is reliably set as a cookie:
-#     Set-Cookie: ClusterUri=<tenantId>=<clusterUrl>; ...
-$headers = curl.exe -s -D - -o $null -H "Authorization: Bearer $token" `
+# Capture response headers (-D -) AND body. Non-prod rings (dxt, daily)
+# return the portal SPA HTML for GETs on this endpoint, and the cookie is
+# only set on some rings — so we try TWO discovery paths:
+#   1. Set-Cookie: ClusterUri=<tenantId>=<clusterUrl> (prod, sometimes msit)
+#   2. Embedded `var clusterUri = '<url>';` in the HTML body (dxt, daily)
+# Whichever one returns first wins. Both encode the same value.
+$headerFile = New-TemporaryFile
+$body = curl.exe -s -D $headerFile.FullName -H "Authorization: Bearer $token" `
     "https://$gsHost/powerbi/globalservice/v201606/clusterdetails"
+$headers = Get-Content $headerFile.FullName -Raw
+Remove-Item $headerFile.FullName -Force
 
-$match = ($headers | Select-String -Pattern 'ClusterUri=[^=]+=([^;]+)').Matches
-if (-not $match) {
-    throw "Cluster discovery failed: no ClusterUri cookie in response from https://$gsHost. Check that `$token is valid and `$gsHost matches the Fabric ring."
+$cookieMatch = ($headers | Select-String -Pattern 'ClusterUri=[^=]+=([^;]+)').Matches
+$bodyMatch   = ($body    | Select-String -Pattern "var\s+clusterUri\s*=\s*'([^']+)'").Matches
+
+$cluster = if ($cookieMatch) {
+    $cookieMatch[0].Groups[1].Value.TrimEnd('/')
+} elseif ($bodyMatch) {
+    $bodyMatch[0].Groups[1].Value.TrimEnd('/')
+} else {
+    throw "Cluster discovery failed against https://$gsHost — neither Set-Cookie nor inline var clusterUri found. Check that `$token is valid and `$gsHost matches the Fabric ring."
 }
-$cluster = $match[0].Groups[1].Value.TrimEnd('/')
 ```
 
 > The same mapping is implemented in code at `src/lib/fabricUrls.ts` (`getPowerBIGlobalServiceOrigin`) and consumed by `src/lib/cluster.ts`. Keep them in sync.
@@ -118,5 +128,5 @@ Hand off the parsed `$envelope` object plus `$tenantId` to **org-app-parsing**.
 | `403 Forbidden` | User lacks access to the Org App | Ask the user to confirm they are a viewer of the Org App in `app.powerbi.com` |
 | `404 Not Found` | Wrong cluster (ring mismatch), wrong tenant, or ID is not an Org App | First, re-check `RAYFIN_FABRIC_PORTAL_URL` and confirm the global-service URL in step 3 used the matching ring (`daily.powerbi.com` for `daily.fabric.microsoft.com`, etc.). Then confirm tenant via `az account show`, then verify the ID by opening the Org App in the matching portal (e.g. `https://daily.fabric.microsoft.com/groups/me/apps/<id>`). |
 | `clusterUrl` is null | Token was acquired for the wrong resource | Re-acquire with the exact resource above |
-| Cluster discovery threw "no ClusterUri cookie" | Response body is HTML (portal SPA) **and** no `Set-Cookie: ClusterUri=` header was returned | Expected on non-prod rings — the response body is always HTML there; the cluster URL must come from the cookie. If the cookie is also missing, the token is invalid or `$gsHost` doesn't match the ring. |
-| GET returns HTML instead of JSON | Expected on `dxt` / `daily` portal hosts | Don't parse the body — parse the `Set-Cookie: ClusterUri=<tenant>=<url>` header instead (this is what step 3 does). |
+| Cluster discovery threw "neither Set-Cookie nor inline var clusterUri found" | Response contained neither path | Token is invalid or `$gsHost` doesn't match the ring. Re-acquire the token, double-check the ring mapping, and verify `RAYFIN_FABRIC_PORTAL_URL`. |
+| GET returns HTML instead of JSON | Expected on `dxt` / `daily` portal hosts | Don't parse the response as JSON — step 3 reads the cluster URL from either the `Set-Cookie: ClusterUri=...` header (prod) **or** the inline `var clusterUri = '...'` in the HTML body (dxt, daily). |

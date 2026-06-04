@@ -6,38 +6,35 @@
 //-----------------------------------------------------------------------
 
 import { useParams } from "react-router-dom";
-import type { OrgAppManifest, OrgAppReportItem } from "@/types/orgAppManifest";
+import type { OrgAppManifest, OrgAppRdlReportItem } from "@/types/orgAppManifest";
 import { walkNavItems } from "@/types/orgAppManifest";
-import { getReportEmbedUrl } from "@/lib/fabricUrls";
+import { getRdlEmbedUrl } from "@/lib/fabricUrls";
 
-interface ReportEmbedProps {
+interface RdlEmbedProps {
     manifest: OrgAppManifest;
 }
 
 /**
- * Secure embed iframe for a Power BI (interactive PBIX) report.
+ * Secure embed iframe for a Power BI **paginated (RDL)** report.
  *
- * Uses the `autoAuth=true` flow so the AAD cookie from the user's
- * existing Power BI session signs them into the iframe automatically —
- * no embed token required.
- *
- * See: https://learn.microsoft.com/power-bi/collaborate-share/service-embed-secure
+ * Same `autoAuth=true` flow as the Power BI report embed, but the portal
+ * uses a different path (`/rdlEmbed`) for paginated reports.
  */
-export function ReportEmbed({ manifest }: ReportEmbedProps) {
+export function RdlEmbed({ manifest }: RdlEmbedProps) {
     const { itemId } = useParams<{ itemId: string }>();
-    const report = findReport(manifest, itemId ?? "");
+    const report = findRdlReport(manifest, itemId ?? "");
 
     if (!report) {
         return (
             <div className="flex h-full items-center justify-center bg-background p-l">
                 <div className="text-300 text-muted-foreground">
-                    Report not found.
+                    Paginated report not found.
                 </div>
             </div>
         );
     }
 
-    const src = getReportEmbedUrl({
+    const src = getRdlEmbedUrl({
         reportItemId: report.itemId,
         workspaceId: manifest.workspaceId,
         tenantId: manifest.tenantId,
@@ -54,13 +51,13 @@ export function ReportEmbed({ manifest }: ReportEmbedProps) {
     );
 }
 
-function findReport(
+function findRdlReport(
     manifest: OrgAppManifest,
     itemId: string,
-): OrgAppReportItem | undefined {
+): OrgAppRdlReportItem | undefined {
     for (const section of manifest.sections) {
         for (const it of walkNavItems(section.items)) {
-            if (it.kind === "report" && it.itemId === itemId) return it;
+            if (it.kind === "rdlreport" && it.itemId === itemId) return it;
         }
     }
     return undefined;

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, ExternalLink, X } from "lucide-react";
 import type { OrgAppManifest } from "@/types/orgAppManifest";
+import { walkNavItems } from "@/types/orgAppManifest";
 import { getOpenAppUrl } from "@/lib/fabricUrls";
 
 interface ConfigurationDialogProps {
@@ -19,7 +20,7 @@ interface ConfigurationDialogProps {
  * Read-only modal showing the source Org App that this template was
  * migrated from. Surfaces:
  *   - Display name + IDs (workspace / org app / tenant) with copy buttons
- *   - Report count + display names
+ *   - Routable nav-item count + overview marker
  *   - "Open in Power BI" deep link
  *   - The full manifest JSON (the same shape persisted in
  *     `src/config/orgAppManifest.ts`)
@@ -80,8 +81,10 @@ export function ConfigurationDialog({ manifest, onClose }: ConfigurationDialogPr
                             <Row label="Workspace ID" value={manifest.workspaceId} mono />
                             <Row label="Tenant ID" value={manifest.tenantId} mono />
                             <Row
-                                label="Reports"
-                                value={`${manifest.reports.length} embedded`}
+                                label="Nav items"
+                                value={`${countLeaves(manifest)} routable${
+                                    manifest.overview ? " + overview" : ""
+                                }`}
                             />
                         </dl>
 
@@ -166,4 +169,19 @@ function Row({ label, value, mono }: RowProps) {
             </button>
         </div>
     );
+}
+
+/**
+ * Counts routable leaf nav items across all sections (reports, RDL
+ * reports, embedded links, and new-tab links). Recurses into nested
+ * sections.
+ */
+function countLeaves(manifest: OrgAppManifest): number {
+    let n = 0;
+    for (const section of manifest.sections) {
+        for (const it of walkNavItems(section.items)) {
+            if (it.kind !== "section") n++;
+        }
+    }
+    return n;
 }

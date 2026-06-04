@@ -22,7 +22,9 @@ export function UnconfiguredAppPreview() {
                 <p className="mb-l text-300 leading-300 text-muted-foreground">
                     This template will become your Org App. Run the migration
                     agent and tell it your Org App ID — it will populate the
-                    sidebar, theme, and reports for you.
+                    sidebar (sections, sub-sections, paginated reports,
+                    embedded links, and new-tab links), introduction page,
+                    logo, and theme for you.
                 </p>
 
                 <div className="rounded-lg border border-border bg-card p-l">

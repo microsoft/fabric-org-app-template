@@ -41,7 +41,16 @@ export function Topbar({ manifest, onToggleSidebar, sidebarCollapsed }: TopbarPr
                 to="/"
                 className="flex min-w-0 items-center gap-s rounded-md px-s py-xs text-foreground transition-colors hover:bg-muted"
             >
-                <Sparkles className="icon-size-200 shrink-0 text-primary" />
+                {manifest.logo ? (
+                    <img
+                        src={manifest.logo}
+                        alt=""
+                        aria-hidden="true"
+                        className="h-6 w-6 shrink-0 rounded object-cover"
+                    />
+                ) : (
+                    <Sparkles className="icon-size-200 shrink-0 text-primary" />
+                )}
                 <span className="truncate font-heading text-300 leading-300 font-semibold">
                     {manifest.displayName || "Org App"}
                 </span>
