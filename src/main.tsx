@@ -10,26 +10,25 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import App from "./App.tsx";
 import { ErrorFallback } from "./ErrorFallback";
-import { AuthGate } from "./components/auth-gate.component";
+import { AuthGate } from "./components/AuthGate";
 import { AuthProvider } from "./hooks/use-auth";
-import { ThemeContext } from "./hooks/theme.context";
 import { useAppTheme } from "./hooks/use-theme";
 
 import "./global.css";
 
 function Root() {
-    const { isDark, toggleTheme } = useAppTheme();
+    // Side-effect only: keeps the `dark` class on <html> in sync with the
+    // user's OS / Fabric portal `data-appearance` setting.
+    useAppTheme();
 
     return (
-        <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <AuthProvider>
-                    <AuthGate>
-                        <App />
-                    </AuthGate>
-                </AuthProvider>
-            </ErrorBoundary>
-        </ThemeContext.Provider>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <AuthProvider>
+                <AuthGate>
+                    <App />
+                </AuthGate>
+            </AuthProvider>
+        </ErrorBoundary>
     );
 }
 

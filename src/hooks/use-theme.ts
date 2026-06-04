@@ -8,11 +8,13 @@
 import { useState, useEffect } from "react";
 
 /**
- * Detects the current color scheme preference and toggles the `dark`
- * class on `<html>`. Listens for changes to `prefers-color-scheme` and
- * the `data-appearance` attribute on `<html>`.
+ * Side-effect hook: keeps the `dark` class on `<html>` in sync with the
+ * user's color-scheme preference and any `data-appearance` attribute
+ * pushed by the Fabric portal when the app runs in an iframe.
+ *
+ * Returns nothing — mount once at the app root.
  */
-export function useAppTheme() {
+export function useAppTheme(): void {
     const [isDark, setIsDark] = useState(() => {
         const appearance = document.documentElement.getAttribute("data-appearance");
         if (appearance === "dark") return true;
@@ -47,8 +49,4 @@ export function useAppTheme() {
             observer.disconnect();
         };
     }, []);
-
-    const toggleTheme = () => setIsDark((prev: boolean) => !prev);
-
-    return { isDark, toggleTheme };
 }

@@ -7,10 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ORG_APP_THEME_KEY, builtInThemes } from "@/config/themePresets";
-import {
-    applyPowerBITheme,
-    resetToOrgAppTheme,
-} from "@/lib/theme";
+import { applyOrgAppTheme, applyPowerBITheme } from "@/lib/theme";
 import type { OrgAppManifest } from "@/types/orgAppManifest";
 
 const STORAGE_KEY = "org-app-active-theme";
@@ -33,12 +30,12 @@ export function useOrgAppTheme(manifest: OrgAppManifest) {
     // Apply on mount + when active changes.
     useEffect(() => {
         if (activeName === ORG_APP_THEME_KEY) {
-            resetToOrgAppTheme(manifest);
+            applyOrgAppTheme(manifest.theme);
             return;
         }
         const pbi = builtInThemes.find((t) => t.name === activeName);
         if (pbi) applyPowerBITheme(pbi);
-        else resetToOrgAppTheme(manifest);
+        else applyOrgAppTheme(manifest.theme);
     }, [activeName, manifest]);
 
     const setActive = useCallback((name: string) => {

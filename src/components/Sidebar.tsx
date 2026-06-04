@@ -99,12 +99,6 @@ export function Sidebar({ manifest, collapsed }: SidebarProps) {
                     ))}
                 </ul>
             </nav>
-
-            <style>{`
-                .app-nav-idle:hover { background: var(--color-app-background-hover); }
-                .app-nav-idle:active { background: var(--color-app-background-pressed); }
-                .app-nav-active { background: var(--color-app-background-selected); }
-            `}</style>
         </aside>
     );
 }

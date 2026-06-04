@@ -14,9 +14,9 @@ let client: RayfinClient | null = null;
  *
  * The env vars are populated by `npx rayfin up` into `.env.local`.
  *
- * This template does not currently call any Rayfin data or auth APIs —
- * the client is wired up as a convenience so you can `import { getRayfinClient }`
- * when you start adding entities or functions.
+ * Consumed today by `RayfinAuthService` (Fabric SSO via `client.auth`).
+ * When you start adding Rayfin data entities or functions, import
+ * `getRayfinClient()` from here so all callers share the same client.
  */
 export function getRayfinClient(): RayfinClient {
     if (client) return client;

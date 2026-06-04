@@ -20,20 +20,10 @@ export function UnconfiguredAppPreview() {
                     Migrate a Power BI Org App
                 </h1>
                 <p className="mb-l text-300 leading-300 text-muted-foreground">
-                    This template will become your Org App. Paste your Org App
-                    ID below and run the migration agent — it will populate the
+                    This template will become your Org App. Run the migration
+                    agent and tell it your Org App ID — it will populate the
                     sidebar, theme, and reports for you.
                 </p>
-
-                <label className="mb-s block text-200 leading-200 font-medium text-foreground">
-                    Your Org App ID
-                </label>
-                <input
-                    type="text"
-                    placeholder="00000000-0000-0000-0000-000000000000"
-                    className="mb-l w-full rounded-lg border border-border bg-card px-m py-s font-mono text-200 leading-200 text-foreground placeholder:text-muted-foreground"
-                    onFocus={(e) => e.currentTarget.select()}
-                />
 
                 <div className="rounded-lg border border-border bg-card p-l">
                     <div className="mb-s text-200 leading-200 font-medium text-foreground">

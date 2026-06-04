@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import type { OrgAppManifest, OrgAppTheme } from "@/types/orgAppManifest";
+import type { OrgAppTheme } from "@/types/orgAppManifest";
 import type { PowerBITheme } from "@/config/themePresets";
 
 /**
@@ -23,14 +23,6 @@ import type { PowerBITheme } from "@/config/themePresets";
  * Power BI theme the user picked," not pixel-perfect parity with the
  * portal chrome.
  */
-
-const APP_VARS = [
-    "--color-app-background",
-    "--color-app-foreground",
-    "--color-app-background-hover",
-    "--color-app-background-selected",
-    "--color-app-background-pressed",
-] as const;
 
 /** Map an Org App manifest theme directly to shell vars. */
 export function applyOrgAppTheme(theme: OrgAppTheme): void {
@@ -64,18 +56,6 @@ export function applyPowerBITheme(theme: PowerBITheme): void {
         "--color-app-background-selected": mixHex(canvas, accent, 0.35),
         "--color-app-background-pressed": mixHex(canvas, accent, 0.45),
     });
-}
-
-/** Restore all theme overrides — falls back to whatever is declared in `@theme`. */
-export function clearThemeOverrides(): void {
-    for (const v of APP_VARS) {
-        document.documentElement.style.removeProperty(v);
-    }
-}
-
-/** Convenience: re-apply whichever theme should be active given a manifest. */
-export function resetToOrgAppTheme(manifest: OrgAppManifest): void {
-    applyOrgAppTheme(manifest.theme);
 }
 
 // --- helpers ---------------------------------------------------------------

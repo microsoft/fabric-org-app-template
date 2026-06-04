@@ -166,6 +166,14 @@
   }
 }
 
+@layer components {
+  /* Sidebar nav states — driven by --color-app-* tokens that the
+     theme switcher overrides at runtime. */
+  .app-nav-idle:hover { background: var(--color-app-background-hover); }
+  .app-nav-idle:active { background: var(--color-app-background-pressed); }
+  .app-nav-active { background: var(--color-app-background-selected); }
+}
+
 html,
 body,
 #root {
