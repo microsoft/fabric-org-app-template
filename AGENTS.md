@@ -32,9 +32,9 @@ Before doing anything, confirm with the user:
 3. They have provided the **Org App ID** (GUID)
 4. **Rayfin is connected to the workspace that hosts the Org App.** Check `.env.local` for `VITE_FABRIC_API_URL`, `VITE_FABRIC_PORTAL_URL`, and `VITE_RAYFIN_API_KEY`. If any are missing, ask the user to run:
    ```powershell
-   npx rayfin up --workspace-uri "https://<ring>.fabric.microsoft.com/groups/<WORKSPACE_GUID>"
+   npx rayfin up --workspace-id <WORKSPACE_GUID>
    ```
-   where `<ring>` is `app` (prod), `dxt`, `daily`, or `msit`, and `<WORKSPACE_GUID>` is the workspace that hosts the Org App. **Always pass `--workspace-uri` explicitly** — the interactive workspace search often fails when many workspaces match the user's filter.
+   where `<WORKSPACE_GUID>` is the workspace that hosts the Org App. **Always pass `--workspace-id` explicitly** — the interactive workspace search often fails when many workspaces match the user's filter.
 
 If any are missing, ask for them. Do not proceed until all four are confirmed.
 
