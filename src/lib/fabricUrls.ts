@@ -12,13 +12,11 @@ import type { OrgAppManifest } from "@/types/orgAppManifest";
  *
  * Comes from rayfin's `VITE_FABRIC_PORTAL_URL` (populated by `rayfin up`).
  * The Fabric portal serves both the Org App experience and the report
- * embed endpoint on the same host (e.g. `https://daily.fabric.microsoft.com`),
+ * embed endpoint on the same host (e.g. `https://app.fabric.microsoft.com`),
  * so a single origin is enough — no separate "powerbi.com" mapping needed.
  *
  * Fallback is the **production** Fabric portal — this is the right default
- * for every deployed build. To target a non-prod ring (daily/dxt) during
- * local development, set `RAYFIN_FABRIC_PORTAL_URL` in your shell before
- * running `rayfin up` / `rayfin dev` (see README).
+ * for every deployed build.
  */
 export function getFabricOrigin(): string {
     const raw = import.meta.env.VITE_FABRIC_PORTAL_URL ?? "https://app.fabric.microsoft.com";
@@ -63,8 +61,8 @@ export function getRdlEmbedUrl(args: {
 /**
  * Deep link to open the whole Org App in the Power BI / Fabric portal.
  *
- * The Fabric portal uses `/groups/{ws}/orgapps/{appId}` for Org Apps
- * (preview). The legacy `/groups/{ws}/apps/{appId}` path is for classic
+ * The Fabric portal uses `/groups/{ws}/orgapps/{appId}` for Org Apps.
+ * The legacy `/groups/{ws}/apps/{appId}` path is for classic
  * Power BI apps and 404s for Org Apps.
  */
 export function getOpenAppUrl(manifest: OrgAppManifest): string {

@@ -38,9 +38,7 @@ export class RayfinAuthService {
         return {
             workspaceId,
             projectId,
-            // Production default; to target daily/dxt during local dev, set
-            // RAYFIN_FABRIC_PORTAL_URL in your shell before running rayfin
-            // (see README → "Environment configuration").
+            // Production default.
             fabricPortalUrl:
                 import.meta.env.VITE_FABRIC_PORTAL_URL ?? "https://app.fabric.microsoft.com",
             returnOrigin: window.location.origin,

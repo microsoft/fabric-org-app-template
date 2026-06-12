@@ -8,7 +8,7 @@ This file is auto-loaded by GitHub Copilot CLI (and by other agentic tools that 
 
 ## Primary task
 
-Migrate a Power BI Org App (preview) into this template. Inputs from the user:
+Migrate a Power BI Org App into this template. Inputs from the user:
 
 - **Org App ID** — a GUID like `1b663c51-10f8-4fdf-8863-d24e49622988`
 

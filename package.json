@@ -1,6 +1,6 @@
 {
   "name": "fabric-org-app-template",
-  "description": "Rayfin template to migrate a Power BI Org App (preview) into a customizable Fabric app.",
+  "description": "Rayfin template to migrate a Power BI Org App into a customizable Fabric app.",
   "license": "MIT",
   "author": "Microsoft",
   "private": true,

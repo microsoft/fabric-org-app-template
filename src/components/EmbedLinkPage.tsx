@@ -17,8 +17,8 @@ interface EmbedLinkPageProps {
  * Renders a `linkEmbed` nav item — an iframe whose `src` is the verbatim
  * URL baked into the Org App definition.
  *
- * The URL frequently points at a different host (e.g. an
- * `msit.powerbi.com` link inside an app deployed at `dxt.fabricapps.net`).
+ * The URL frequently points at a different host than where this app
+ * is deployed.
  * The iframe loads that URL as-is; if the user's browser has no
  * authenticated session against that host, they'll see the host's
  * sign-in flow inside the iframe and must authenticate there. This
