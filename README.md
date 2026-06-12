@@ -1,12 +1,12 @@
 # fabric-org-app-template
 
-A Rayfin template for migrating a **Power BI Org App (preview)** into a customizable Fabric app.
+A Rayfin template for migrating a **Power BI Org App** into a customizable Fabric app.
 
 Start with your Org App ID, run the migration agent, and you'll have a standalone app with the same reports, the same theme, and the same navigation — but the source code is yours to extend.
 
 ## What it does
 
-- Reads your Org App's definition via the internal Power BI metadata API
+- Reads your Org App's definition via the Power BI metadata API
 - Generates a static `OrgAppManifest` (workspace ID, reports, theme) — no runtime fetches
 - Renders a sidebar + iframe-embedded reports using the **secure embed** flow (no embed token, no service principal required)
 - Themes the chrome with the brand colors from your Org App, with a built-in switcher for Power BI themes
@@ -74,36 +74,6 @@ You'll see output like:
 Open the **Portal** URL — that's your app, running inside the Fabric portal, accessible to anyone you share it with in that workspace. Re-run `npx rayfin up` whenever you want to redeploy; the same project ID is reused, so users keep the same URL.
 
 > **For local development with hot reload**, run `npx rayfin dev`. It starts Vite on `http://localhost:5173`, reuses the `rayfin/.env` from your earlier `rayfin up`, and refreshes the browser when you edit any file under `src/`. Auth still goes to your live Fabric tenant via Rayfin SSO.
-
----
-
-## Environment configuration — non-prod rings (daily, dxt)
-
-By default `rayfin up` targets the **prod** Fabric ring (`app.fabric.microsoft.com`). For development against **daily** or **dxt** rings — typically only needed for Microsoft internal scenarios — set these two environment variables **in your terminal session before running any `rayfin` command**:
-
-| Ring | `RAYFIN_FABRIC_API_URL` | `RAYFIN_FABRIC_PORTAL_URL` |
-|---|---|---|
-| **prod** *(default)* | *(unset)* | *(unset)* |
-| **dxt** | `https://dxtapi.fabric.microsoft.com/v1` | `https://dxt.fabric.microsoft.com/` |
-| **daily** | `https://dailyapi.fabric.microsoft.com/v1` | `https://daily.fabric.microsoft.com/` |
-| **msit** | *(unset — uses prod)* | *(unset — uses prod)* |
-
-> **msit** is Microsoft-internal but runs on the **prod** Fabric ring, so no env overrides are needed.
-
-Example (PowerShell, dxt):
-
-```powershell
-$env:RAYFIN_FABRIC_API_URL = "https://dxtapi.fabric.microsoft.com/v1"
-$env:RAYFIN_FABRIC_PORTAL_URL = "https://dxt.fabric.microsoft.com/"
-
-npx rayfin up --workspace-id <WORKSPACE_GUID>
-# or
-npx rayfin dev
-```
-
-The same Fabric ring is used for Rayfin deployment **and** for the auth iframe + Org App metadata fetch — don't mix rings (set both variables, or neither).
-
-After `rayfin up` runs, the values flow into `.env.local` as `VITE_FABRIC_PORTAL_URL` etc. and the migration skill picks them up automatically. To target a different ring later, unset / reset the env vars and re-run `rayfin up`.
 
 ---
 

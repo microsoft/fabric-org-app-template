@@ -24,9 +24,6 @@ The embed origin is read from `VITE_FABRIC_PORTAL_URL` (set by `rayfin up` / `ra
 | Fabric portal | Embed origin used |
 |---|---|
 | `https://app.fabric.microsoft.com/` | `https://app.fabric.microsoft.com` |
-| `https://daily.fabric.microsoft.com/` | `https://daily.fabric.microsoft.com` |
-| `https://msit.fabric.microsoft.com/` | `https://msit.fabric.microsoft.com` |
-| `https://dxt.fabric.microsoft.com/` | `https://dxt.fabric.microsoft.com` |
 
 The user's existing Power BI / Fabric session signs them into the iframe automatically. **No embed token, no service principal, no Power BI Embedded capacity required.**
 
@@ -60,7 +57,7 @@ If the user later needs filters, bookmarks, or eventing — switch to `powerbi-c
 | Symptom | Cause | Fix |
 |---|---|---|
 | Iframe shows "You don't have access" | User is not a viewer of the workspace **or** the underlying report | Verify in the Fabric portal directly (`VITE_FABRIC_PORTAL_URL`) |
-| Iframe shows AAD login form | `autoAuth` did not pick up the session | User must visit the Fabric portal once in this browser session (e.g. `https://daily.fabric.microsoft.com/`) to seed the cookie |
+| Iframe shows AAD login form | `autoAuth` did not pick up the session | User must visit the Fabric portal once in this browser session (e.g. `https://app.fabric.microsoft.com/`) to seed the cookie |
 | Iframe loads then shows "Tenant mismatch" | `ctid` doesn't match the session tenant | Confirm `tenantId` in the manifest matches `az account show --query tenantId` |
 | Iframe loads blank, no error | `reportId` belongs to a different `groupId` | Re-run the migration agent to refresh the manifest |
 | Mixed content / X-Frame-Options error in console | Self-hosted under a non-HTTPS origin | Use `https://` (or `http://localhost` which Power BI allows) |
